@@ -19,4 +19,17 @@ res = 0
 for a, b in zip(left, right):
     res += abs(a - b)
 
-print(res)
+print("Part 1:", res)
+
+res = 0
+num_counts = {}
+
+for n in right:
+    if n not in num_counts:
+        num_counts[n] = 0
+    num_counts[n] += 1
+
+for n in left:
+    res += n * num_counts.get(n, 0)
+
+print("Part 2:", res)
