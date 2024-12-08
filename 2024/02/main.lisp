@@ -51,9 +51,18 @@
 		  (and (not increasing) (> step 0)))
 	      nil
 	      ;; Recursive call with updated state vars
-	      (inner-is-report-safe-p (cdr report) (first report) increasing)))))))
-  (inner-is-report-safe-p (cdr report) (first report) (> (second report) (first report))))
+	      (inner-is-report-safe-p (cdr report) (first report) increasing))))))
+  (inner-is-report-safe-p (cdr report) (first report) (> (second report) (first report)))))
 
+
+(defun is-report-safe-with-dampener-p (report dampener)
+  (cond ((is-report-safe-p report) t)
+	((not dampener) nil)
+	;; try removing one level at a time using the dampener that we have available
+	(t (loop for i from 0 below (length report)
+             thereis (is-report-safe-with-dampener-p
+                      (append (subseq report 0 i) (subseq report (1+ i)))
+                      nil)))))
 
 (defun part-1 ()
   (let ((reports (parse-input *input-file*))
@@ -63,38 +72,9 @@
 	(incf res)))))
 
 
-(format t "Part 1: ~a~%" (part-1))
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Other part 1 implementations... Reduce and Count implementations
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; (defun part-1 ()
-;;   (let ((reports (parse-input *input-file*)))
-;;     (reduce (lambda (acc report)
-;; 	      (if (is-safe-p report)
-;; 		  (1+ acc)
-;; 		  acc))
-;; 	    reports
-;; 	    :initial-value 0)))
-
-;; (defun part-1 ()
-;;   (let ((reports (parse-input *input-file*)))
-;;     (count t reports :test #'is-safe-p)))
-
-
-;;;;;;; Recursive implementation using 'labels'
-;; (defun is-report-safe-p (report)
-;;   (labels ((is-report-safe-rec (report prev-num increasing)
-;;              (if (null report)
-;;                  t
-;;                  (let ((step (- (first report) prev-num)))
-;;                    (if (or (> (abs step) 3)
-;;                            (= step 0)
-;;                            (and increasing (< step 0))
-;;                            (and (not increasing) (> step 0)))
-;;                        nil
-;;                        (is-report-safe-rec (cdr report) (first report) increasing))))))
-;;     (is-report-safe-rec (cdr report) (first report)
-;;                         (> (second report) (first report)))))
+(defun part-2 ()
+  (let ((reports (parse-input *input-file*))
+	(res 0))
+    (dolist (report reports res)
+      (when (is-report-safe-with-dampener-p report t)
+	(incf res)))))
